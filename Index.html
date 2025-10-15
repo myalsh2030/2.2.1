@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المعمل الافتراضي: الرافعة الهيدروليكية</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+        :root {
+            --primary-color: #0d47a1;
+            --secondary-color: #2196f3;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+            --bg-color: #f0f2f5;
+            --panel-bg: #ffffff;
+            --text-color: #212121;
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background-color: var(--panel-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        #training-objective {
+            background-color: #f5f5f5;
+            padding: 20px 25px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        #training-objective h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.3em;
+        }
+
+        #training-objective p {
+            font-size: 1.1em;
+            line-height: 1.7;
+            color: #333;
+            margin-bottom: 0;
+        }
+
+        #scenarios {
+            background-color: #e3f2fd;
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 15px 25px;
+        }
+
+        #scenarios h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.2em;
+        }
+
+        #scenarios ul {
+            list-style-type: none;
+            padding-right: 20px;
+        }
+
+        #scenarios li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        main {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        #scene-container {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #e8eaf6;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            border: 1px solid #c5cae9;
+        }
+
+        #control-panel {
+            flex: 1;
+            min-width: 300px;
+            background-color: var(--panel-bg);
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 25px;
+        }
+
+        #control-panel h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-top: 0;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        
+        .slider-value {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .output-display {
+            background-color: #eceff1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .output-display label {
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .ltr-number {
+            direction: ltr;
+            text-align: left;
+            font-size: 1.5em;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--primary-color);
+            display: inline-block;
+        }
+
+        #status-message {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+            border: 1px solid #a5d6a7;
+        }
+
+        .failure {
+            background-color: #ffebee;
+            color: var(--error-color);
+            border: 1px solid #ef9a9a;
+        }
+
+        /* SVG Scene Styling */
+        #scene-svg {
+            width: 100%;
+            height: auto;
+        }
+        
+        #lift-group {
+            transition: transform 0.6s ease-in-out;
+        }
+        
+        #small-piston {
+            transition: transform 0.3s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>التجربة 1: الرافعة الهيدروليكية (تطبيق مبدأ باسكال)</h1>
+        </header>
+
+        <section id="training-objective">
+            <h2>الهدف التدريبي:</h2>
+            <p>تمكين المتدرب من فهم العلاقة بين القوة والمساحة في الأنظمة الهيدروليكية، وكيف يمكن استخدامها لمضاعفة القوة لرفع أحمال ثقيلة.</p>
+        </section>
+
+        <section id="scenarios">
+            <h2>سيناريوهات تدريبية</h2>
+            <ul>
+                <li><strong>مهمة 1 (الاستكشاف):</strong> "باستخدام الإعدادات الافتراضية، قم بزيادة القوة المسلطة (F₁) تدريجيًا ولاحظ متى تبدأ السيارة في الارتفاع. ما قيمة الضغط عند تلك اللحظة؟"</li>
+                <li><strong>مهمة 2 (التصميم):</strong> "وزن السيارة هو 12,000 نيوتن. إذا كانت أقصى قوة يمكنك تسليطها هي 600 نيوتن فقط، قم بتعديل مساحات المكابس (A₁ و A₂) لتتمكن من رفع السيارة."</li>
+            </ul>
+        </section>
+
+        <main>
+            <div id="scene-container">
+                <svg id="scene-svg" viewBox="0 0 400 350" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Ground -->
+                    <rect x="0" y="300" width="400" height="50" fill="#8d6e63"/>
+                    <rect x="0" y="295" width="400" height="5" fill="#6d4c41"/>
+                    
+                    <!-- Large Cylinder (Lift) -->
+                    <rect id="large-cylinder" x="220" y="200" width="80" height="100" fill="#b0bec5" stroke="#546e7a" stroke-width="2"/>
+                    
+                    <!-- Small Cylinder (Input) -->
+                    <rect id="small-cylinder" x="100" y="240" width="40" height="60" fill="#b0bec5" stroke="#546e7a" stroke-width="2"/>
+                    <rect id="small-piston" x="105" y="230" width="30" height="15" fill="#cfd8dc" stroke="#546e7a" stroke-width="2"/>
+                    
+                    <!-- Connecting Pipe -->
+                    <path d="M 140 260 L 220 260" stroke="#546e7a" stroke-width="15" fill="none"/>
+                    <path d="M 140 255 L 220 255" stroke="#90a4ae" stroke-width="5" fill="none"/>
+
+                    <!-- Lift Group: Contains the hydraulic rod, large piston and the car to move together -->
+                    <g id="lift-group">
+                        <!-- Hydraulic Rod (Cylinder Rod) - connects piston to cylinder -->
+                        <rect id="hydraulic-rod" x="252" y="205" width="16" height="85" fill="#90a4ae" stroke="#546e7a" stroke-width="2" rx="2"/>
+                        
+                        <!-- Large Piston -->
+                        <rect id="large-piston" x="225" y="190" width="70" height="15" fill="#cfd8dc" stroke="#546e7a" stroke-width="2"/>
+                        
+                        <!-- Car Group -->
+                        <g id="car">
+                            <!-- Car Body -->
+                            <rect x="190" y="140" width="140" height="50" rx="5" fill="#ef5350"/>
+                            <!-- Car Roof -->
+                            <path d="M 210 140 L 225 120 L 295 120 L 310 140 Z" fill="#c62828"/>
+                            <!-- Windows -->
+                            <path d="M 228 125 L 250 125 L 250 138 L 228 138 Z" fill="#bbdefb"/>
+                            <path d="M 255 125 L 292 125 L 292 138 L 255 138 Z" fill="#bbdefb"/>
+                            <!-- Wheels -->
+                            <circle cx="220" cy="190" r="12" fill="#424242"/>
+                            <circle cx="220" cy="190" r="7" fill="#757575"/>
+                            <circle cx="300" cy="190" r="12" fill="#424242"/>
+                            <circle cx="300" cy="190" r="7" fill="#757575"/>
+                            <!-- Car Weight Label -->
+                            <text x="260" y="168" text-anchor="middle" fill="white" font-size="14" font-weight="bold" direction="ltr" unicode-bidi="embed">12,000 N</text>
+                        </g>
+                    </g>
+                    
+                    <!-- Force Arrow (F1) -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#ffc107" />
+                        </marker>
+                    </defs>
+                    <line id="force-arrow" x1="120" y1="180" x2="120" y2="225" stroke="#ffc107" stroke-width="4" marker-end="url(#arrowhead)" />
+                    <text x="125" y="175" fill="#f57c00" font-size="16" font-weight="bold">F₁</text>
+                </svg>
+            </div>
+
+            <div id="control-panel">
+                <h2>لوحة التحكم</h2>
+                
+                <div class="control-group">
+                    <label for="force-input">القوة المسلطة (F₁):</label>
+                    <input type="number" id="force-input" value="0" step="10" min="0" max="2000">
+                    <small>بالنيوتن (N)</small>
+                </div>
+
+                <div class="control-group">
+                    <label for="area1-input">مساحة المكبس الصغير (A₁):</label>
+                    <input type="number" id="area1-input" value="0.005" step="0.001" min="0.001">
+                    <small>بالمتر المربع (m²)</small>
+                </div>
+
+                <div class="control-group">
+                    <label for="area2-input">مساحة المكبس الكبير (A₂):</label>
+                    <input type="number" id="area2-input" value="0.05" step="0.01" min="0.01">
+                    <small>بالمتر المربع (m²)</small>
+                </div>
+
+                <hr style="margin: 25px 0; border: 1px solid #eee;">
+
+                <div class="output-display">
+                    <label>الضغط (P):</label>
+                    <span id="pressure-output" class="ltr-number">0 Pa</span>
+                </div>
+
+                <div class="output-display">
+                    <label>قوة الرفع (F₂):</label>
+                    <span id="force2-output" class="ltr-number">0 N</span>
+                </div>
+
+                <div id="status-message">جاهز للبدء</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const forceInput = document.getElementById('force-input');
+        const area1Input = document.getElementById('area1-input');
+        const area2Input = document.getElementById('area2-input');
+        const pressureOutput = document.getElementById('pressure-output');
+        const force2Output = document.getElementById('force2-output');
+        const statusMessage = document.getElementById('status-message');
+        const liftGroup = document.getElementById('lift-group');
+        const smallPiston = document.getElementById('small-piston');
+        const forceArrow = document.getElementById('force-arrow');
+
+        // --- Constants ---
+        const CAR_WEIGHT = 12000; // Newtons
+
+        // --- Main Simulation Function ---
+        function updateSimulation() {
+            // 1. Get Input Values
+            const F1 = parseFloat(forceInput.value);
+            const A1 = parseFloat(area1Input.value);
+            const A2 = parseFloat(area2Input.value);
+
+            // 2. Validate Inputs
+            if (isNaN(F1) || isNaN(A1) || isNaN(A2) || A1 <= 0 || A2 <= 0 || F1 < 0) {
+                statusMessage.textContent = "الرجاء إدخال قيم صالحة للمساحات (أكبر من صفر).";
+                statusMessage.className = 'failure';
+                pressureOutput.innerHTML = '--- Pa';
+                force2Output.textContent = '--- N';
+                liftGroup.style.transform = 'translateY(0px)';
+                return;
+            }
+
+            // 3. Calculations (Pascal's Principle)
+            // P = F1 / A1
+            const pressure = F1 / A1;
+            // F2 = P * A2
+            const F2 = pressure * A2;
+
+            // 4. Update Output Displays
+            // Custom formatting for scientific notation
+            let formattedPressure;
+            if (pressure === 0) {
+                formattedPressure = '0 Pa';
+            } else {
+                const exponent = Math.floor(Math.log10(pressure));
+                const mantissa = pressure / Math.pow(10, exponent);
+                formattedPressure = `${mantissa.toFixed(2)} × 10<sup>${exponent}</sup> Pa`;
+            }
+            pressureOutput.innerHTML = formattedPressure;
+
+            force2Output.textContent = `${F2.toFixed(0)} N`;
+
+            // 5. Visual Response
+            if (F2 > CAR_WEIGHT) {
+                // Success: Lift the car and the large piston together
+                liftGroup.style.transform = 'translateY(-50px)';
+                statusMessage.textContent = 'تم رفع السيارة بنجاح!';
+                statusMessage.className = 'success';
+            } else if (F1 === 0) {
+                // No force applied
+                liftGroup.style.transform = 'translateY(0px)';
+                statusMessage.textContent = 'قم بإدخال قيمة القوة المسلطة للبدء';
+                statusMessage.className = '';
+            } else {
+                // Failure: Car and piston stay down
+                liftGroup.style.transform = 'translateY(0px)';
+                statusMessage.textContent = 'القوة غير كافية للرفع';
+                statusMessage.className = 'failure';
+            }
+        }
+        
+        function updatePistonAndArrow() {
+            const F1 = parseFloat(forceInput.value);
+            const maxForce = 1000;
+            const maxTranslate = 20; // Max downward movement in pixels
+            
+            // Calculate translation based on force
+            const translateAmount = Math.min((F1 / maxForce) * maxTranslate, maxTranslate);
+            
+            smallPiston.style.transform = `translateY(${translateAmount}px)`;
+            forceArrow.setAttribute('y1', 180 + translateAmount);
+        }
+
+        // --- Event Listeners ---
+        forceInput.addEventListener('input', () => {
+            updateSimulation();
+            updatePistonAndArrow();
+        });
+
+        area1Input.addEventListener('input', updateSimulation);
+        area2Input.addEventListener('input', updateSimulation);
+
+        // --- Initial Run ---
+        updateSimulation();
+        updatePistonAndArrow();
+    </script>
+</body>
+</html>
